@@ -1,89 +1,88 @@
 <template>
   <div id="app" class="app">
-    <h1 class="title">代码评分工具</h1>
-    <p class="description">输入您的 GitHub 仓库 URL，快速获取代码质量评分！</p>
-    <input
-      v-model="repoUrl"
-      type="text"
-      placeholder="输入 GitHub 仓库 URL"
-      class="input"
-      @keyup.enter="getScore"
-    />
-    <button @click="getScore" class="btn" :disabled="loading">
-      获取评分
-    </button>
+    <h1 class="title">LLM Code Scorer</h1>
+    <p class="description">输入 GitHub Repo URL，立即获取评分！</p>
+    <input v-model="repoUrl" type="text" placeholder="输入 GitHub 仓库 URL" class="input" @keyup.enter="getScore" />
+    <button @click="getScore" class="btn" :disabled="loading">获取评分</button>
     <div v-if="loading" class="loader"></div>
+    <p v-if="loading" class="loading-text">LLM 打分中，请耐心等待...</p>
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
     <div v-if="score !== null && !loading" ref="resultArea" class="result">
-      <h2 class="score">评分: <span>{{ score.toFixed(2) }}</span> / 10</h2>
-      <p class="suggestion">{{ comment }}</p>
-      <div class="image-container">
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
-          alt="评分结果图片"
-          class="result-image"
-          :style="{ width: '512px', height: '512px' }"
-        />
+      <div class="score-container">
+        <h2 class="score">评分: <span>{{ score.toFixed(2) }}</span> / 10</h2>
+        <p class="comment">{{ comment }}</p>
       </div>
-      <p class="suggestion">{{ detail }}</p>
+
+      <h3 class="details-title">评分细节(上下滑动查看)</h3>
+      <div class="details">
+        <div v-for="(item, key) in detail" :key="key" class="detail-item">
+          <h4>{{ key }}</h4>
+          <p>分数: <strong>{{ item.分数 }}</strong></p>
+          <p>理由: {{ item.理由 }}</p>
+        </div>
+      </div>
+
+      <h3 class="summary-title">总评与建议</h3>
       <p class="suggestion">{{ description }}</p>
+      <p class="url-display">URL: <strong>{{ repoUrl }}</strong></p>
     </div>
 
     <footer class="footer">
       <p>
-        <a href="https://github.com/your-repo" target="_blank" class="link">GitHub Repo</a> |
-        <a href="https://yourhomepage.com" target="_blank" class="link">作者主页</a>
+        <a href="https://github.com/vra/llm-code-scorer" target="_blank" class="link">GitHub</a> |
+        <a href="https://github.com/vra/llm-code-scorer" target="_blank" class="link">Feedback</a> |
+        <a href="https://vra.github.io/about" target="_blank" class="link">Yunfeng Wang</a>
       </p>
-      <p>支持我们:</p>
-      <div class="donate-links">
-        <a href="https://donate-link-1.com" target="_blank">
-          <img src="https://example.com/donate1.png" alt="Donate Link 1" class="donate-image" />
-        </a>
-        <a href="https://donate-link-2.com" target="_blank">
-          <img src="https://example.com/donate2.png" alt="Donate Link 2" class="donate-image" />
-        </a>
-      </div>
+
     </footer>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-
 export default {
   data() {
     return {
       repoUrl: '',
       score: null,
       comment: '',
-      detail: '',
+      detail: {},
       description: '',
       imageUrl: '',
       loading: false,
+      errorMessage: '',  // 新增错误信息状态
     };
   },
   methods: {
+    validateUrl(url) {
+      const regex = /^(https:\/\/github\.com\/[^/]+\/[^/]+(\.git)?)$/;
+      return regex.test(url);
+    },
     async getScore() {
+      if (!this.validateUrl(this.repoUrl)) {
+        alert("请输入有效的 GitHub 仓库 URL:\n https://github.com/user/repo 或 https://github.com/user/repo.git");
+        return; // 如果 URL 无效，结束方法
+      }
       this.loading = true;
-      this.score = null; 
-      this.comment= ''; 
-      this.detail= ''; 
-      this.description = ''; 
-      this.imageUrl = ''; 
-
+      this.score = null;
+      this.comment = '';
+      this.detail = {};
+      this.description = '';
+      this.imageUrl = '';
+      this.errorMessage = '';
       try {
-        const response = await axios.post('http://localhost:5000/get-score', {
+        const response = await axios.post('http://172.17.63.140:5000/get-score', {
           url: this.repoUrl
         });
-        
-        this.score = response.data.score; 
-        this.comment = response.data.comment; 
-        this.detail = response.data.detail; 
-        this.description = response.data.description; 
-        this.imageUrl = response.data.imageUrl; 
+
+        this.score = response.data.score;
+        this.comment = response.data.comment;
+        this.detail = response.data.detail;
+        this.description = response.data.description;
       } catch (error) {
         console.error('Error fetching score data:', error);
+        this.errorMessage = "打分出错，请确认仓库 URL 是否正确，或稍后重试"; // 设置错误信息
       } finally {
         this.loading = false;
       }
@@ -93,11 +92,6 @@ export default {
 </script>
 
 <style scoped>
-@keyframes gradient {
-  0% { background-color: #5a67d8; }
-  100% { background-color: #b83280; }
-}
-
 .app {
   height: 100vh;
   display: flex;
@@ -105,21 +99,23 @@ export default {
   justify-content: center;
   align-items: center;
   color: #fff;
+  /* 统一为白色字体 */
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(-45deg, #5a67d8, #b83280); /* Gradient background */
+  background: linear-gradient(-45deg, #5a67d8, #b83280);
   text-align: center;
-  margin: 0; /* Remove margin */
-  padding: 0 2rem; /* Add padding to sides */
+  margin: 0;
+  padding: 0 2rem;
 }
 
 .title {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
+  color: #fff;
 }
 
 .description {
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.0rem;
+  color: #fff;
+  /* 设置为白色 */
 }
 
 .input {
@@ -129,7 +125,7 @@ export default {
   border-radius: 20px;
   margin-bottom: 1rem;
   width: 100%;
-  max-width: 400px; /* Limit input width */
+  max-width: 400px;
   box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
 }
@@ -140,7 +136,7 @@ export default {
 }
 
 .btn {
-  background: #ff4081; /* Button color */
+  background: #ff4081;
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -159,104 +155,133 @@ export default {
   width: 100%;
 }
 
+.score-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .score {
   font-size: 2rem;
   font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  /* 设置为白色 */
+}
+
+.comment {
+  font-style: italic;
+  color: #fff;
+  /* 设置为白色 */
+}
+
+.details-title,
+.summary-title {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  color: #fff;
+  /* 设置为白色 */
+}
+
+.details {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.detail-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1rem;
   margin-bottom: 1rem;
-  text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.3);
+  transition: background 0.3s;
 }
 
-.image-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: 15px;
-  margin-bottom: 1rem;
+.detail-item h4 {
+  color: #fff;
+  /* 设置为白色 */
 }
 
-.result-image {
-  max-width: 100%;
-  transition: transform 0.3s ease;
+.detail-item p {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #fff;
+  /* 设置为白色 */
 }
 
-.result-image:hover {
-  transform: scale(1.1); /* Hover effect */
+.detail-item:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.suggestion {
-  font-size: 1.2rem;
-  color: #f0e68c; /* Light color for contrast */
-  animation: fadeIn 1s ease-in;
+.url-display {
+  font-size: 1rem;
+  margin-top: 1rem;
+  color: #fff;
+  /* 设置为白色 */
 }
 
 /* Loader styles */
 .loader {
   border: 8px solid rgba(255, 255, 255, 0.3);
   border-top: 8px solid #ff4081;
+  /* 使用偏粉色 */
   border-radius: 50%;
   width: 60px;
   height: 60px;
   animation: spin 1s linear infinite;
-  margin: 1.5rem auto; /* Center the loader */
+  margin: 1.5rem auto;
 }
 
-/* Spin animation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* Fade-in animation */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Footer styles */
 .footer {
   text-align: center;
-  margin-top: auto; /* Align footer at the bottom */
+  margin-top: auto;
   padding: 1rem;
 }
 
 .link {
-  color: #ff80ab; /* Link color */
+  color: #ff4081;
+  /* 使用偏粉色 */
   text-decoration: none;
 }
 
 .link:hover {
-  text-decoration: underline; /* Underline on hover */
+  text-decoration: underline;
 }
 
 .donate-links {
   display: flex;
   justify-content: center;
-  gap: 1rem; /* Space between images */
+  gap: 1rem;
   margin-top: 0.5rem;
 }
 
 .donate-image {
-  max-width: 100px; /* Set a max-width for donate images */
+  max-width: 100px;
 }
 
-/* Responsive styles */
-@media (max-width: 600px) {
-  .title {
-    font-size: 2rem; /* Smaller title font size for mobile */
-  }
-  .input {
-    font-size: 0.9rem; /* Smaller input font size */
-  }
-  .btn {
-    padding: 0.5rem 1rem; /* Smaller button padding */
-  }
+.loading-text {
+  color: #fff;
+  /* 根据您的需要设置颜色 */
+  font-size: 1.0rem;
+  /* 字体大小 */
+  margin-top: 10px;
+  /* 上边距 */
 }
 
-.share-btn {
-  margin-top: 20px; /* 合适的间隔 */
-}
-
-.result-image {
-  max-width: 100%; /* 确保图片不会超出容器宽度 */
+.error-message {
+  color: #fff;
+  /* 设置为红色以突出显示 */
+  margin-top: 10px;
+  /* 上边距 */
 }
 </style>
-

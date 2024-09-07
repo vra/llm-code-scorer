@@ -1,4 +1,4 @@
-# code-grading
+# llm-code-scorer
 
 ## Project setup
 ```
