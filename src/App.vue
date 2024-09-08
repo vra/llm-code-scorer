@@ -59,11 +59,43 @@ export default {
       const regex = /^(https:\/\/github\.com\/[^/]+\/[^/]+(\.git)?)$/;
       return regex.test(url);
     },
+    async checkRepoExists(user, repo) {
+      try {
+        const response = await axios.get(`https://api.github.com/repos/${user}/${repo}`);
+        return response.status === 200; // 返回 true 表示仓库存在
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          return false; // 返回 false 表示仓库不存在
+        } else {
+          console.error("检查仓库存在性时出错:", error);
+          throw error; // 处理其他错误
+        }
+      }
+    },
     async getScore() {
       if (!this.validateUrl(this.repoUrl)) {
         alert("请输入有效的 GitHub 仓库 URL:\n https://github.com/user/repo 或 https://github.com/user/repo.git");
         return; // 如果 URL 无效，结束方法
       }
+
+      // 提取用户和仓库名称
+      const regex = /https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\.git)?/;
+      const match = this.repoUrl.match(regex);
+      if (match) {
+        const user = match[1];
+        const repo = match[2];
+
+        // 检查仓库是否存在
+        const exists = await this.checkRepoExists(user, repo);
+        if (!exists) {
+          this.errorMessage = "所提供的仓库不存在。";
+          return;
+        }
+      } else {
+        this.errorMessage = "无效的仓库链接格式。";
+        return;
+      }
+
       this.loading = true;
       this.score = null;
       this.comment = '';
