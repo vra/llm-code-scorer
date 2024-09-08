@@ -79,7 +79,7 @@ export default {
       }
 
       // 提取用户和仓库名称
-      const regex = /https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\.git)?/;
+      const regex = /https:\/\/github\.com\/([^/]+)\/([^/]+)(\.git)?/;
       const match = this.repoUrl.match(regex);
       if (match) {
         const user = match[1];
@@ -104,7 +104,7 @@ export default {
       this.imageUrl = '';
       this.errorMessage = '';
       try {
-        const response = await axios.post('http://172.17.63.140:5000/get-score', {
+        const response = await axios.post('http://47.99.139.135:5000/get-score', {
           url: this.repoUrl
         });
 

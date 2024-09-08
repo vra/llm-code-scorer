@@ -317,7 +317,7 @@ class AICodeScorer:
         # check repo_url is valid GitHub url
         assert self.is_valid_github_repo(repo_url)
 
-        with tempfile.TemporaryDirectory(delete=False) as temp_dir:
+        with tempfile.TemporaryDirectory() as temp_dir:
             # Clone to temp folder
             fast_repo_url = repo_url.replace(
                 "https://github.com/", "https://gitclone.com/github.com/"
