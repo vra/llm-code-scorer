@@ -342,7 +342,10 @@ class AICodeScorer:
                 "https://github.com/", "https://gitclone.com/github.com/"
             )
             print(fast_repo_url)
-            subprocess.run(["git", "clone", fast_repo_url, temp_dir])
+            try:
+                subprocess.run(["git", "clone", fast_repo_url, temp_dir])
+            except subprocess.CalledProcessError:
+                logger.error("Git clone 失败，commit 信息为空")
 
             logger.info(f"已成功克隆{repo_url} to：{temp_dir}")
 
