@@ -25,16 +25,12 @@ def get_score():
             "作为典范，毫无疑问地值得满分。",
         ],
         9: [
-            "呐，这个就叫专业",
             "想学啊？我教你啊",
             "优雅，真tmd的优雅",
-            "非常接近完美，只差一点点就能满分。",
-            "轻微的不足之处，整体表现令人印象深刻。",
         ],
         8: [
             "AI都得向您学习",
-            "很出色，但缺乏一些创新元素。",
-            "质量优秀，但小细节会让它更完美。",
+            "呐，这个就叫专业",
         ],
         7: [
             "人如果没有梦想，那跟咸鱼有什么分别?",
@@ -88,7 +84,8 @@ def get_score():
     detail = eval_results["评分"]
     print("==> detail:", type(detail), detail)
 
-    score_list = {e["分数"] for e in detail.values()}
+    score_list = [e["分数"] for e in detail.values()]
+    print("==> score_list:", score_list)
     mean_score = sum(score_list) / len(score_list)
     comment = random.choice(comments[int(round(mean_score))])
 

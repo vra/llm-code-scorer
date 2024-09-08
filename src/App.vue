@@ -83,16 +83,16 @@ export default {
       const match = this.repoUrl.match(regex);
       if (match) {
         const user = match[1];
-        const repo = match[2];
+        const repo = match[2].replace(/\.git$/, '');
 
         // 检查仓库是否存在
         const exists = await this.checkRepoExists(user, repo);
         if (!exists) {
-          this.errorMessage = "所提供的仓库不存在。";
+          alert("仓库不存在，请确认URL是否正确:" + user + " " + repo);
           return;
         }
       } else {
-        this.errorMessage = "无效的仓库链接格式。";
+        alert("无效的仓库格式，请确认URL是否正确");
         return;
       }
 
@@ -114,7 +114,7 @@ export default {
         this.description = response.data.description;
       } catch (error) {
         console.error('Error fetching score data:', error);
-        this.errorMessage = "打分出错，请确认仓库 URL 是否正确，或稍后重试"; // 设置错误信息
+        this.errorMessage = "打分出错，请稍后重试"; // 设置错误信息
       } finally {
         this.loading = false;
       }
@@ -140,7 +140,7 @@ export default {
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   color: #fff;
 }
 
