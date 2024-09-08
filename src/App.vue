@@ -28,9 +28,9 @@
 
     <footer class="footer">
       <p>
-        <a href="https://github.com/vra/llm-code-scorer" target="_blank" class="link">GitHub</a> |
-        <a href="https://github.com/vra/llm-code-scorer" target="_blank" class="link">Feedback</a> |
-        <a href="https://vra.github.io/about" target="_blank" class="link">Yunfeng Wang</a>
+        <a href="https://github.com/vra/llm-code-scorer" target="_blank" class="link">GitHub</a>|
+        <a href="https://github.com/vra/llm-code-scorer/issues" target="_blank" class="link">Feedback</a>|
+        <a href="https://www.zhihu.com/people/yunfeng-87" target="_blank" class="link">Yunfeng Wang</a>
       </p>
     </footer>
   </div>
@@ -112,8 +112,7 @@ export default {
       this.imageUrl = '';
       this.errorMessage = '';
       try {
-        // const response = await axios.post('http://47.99.139.135:5000/get-score', {
-        const response = await axios.post('http://127.0.0.1:5000/get-score', {
+        const response = await axios.post('http://47.99.139.135:5000/get-score', {
           url: this.repoUrl
         });
 
