@@ -2,7 +2,7 @@
   <div id="app" class="app">
     <div class="header">
       <h1 class="title">LLM Code Scorer</h1>
-      <p class="description">输入 GitHub Repo URL，立即获取评分！</p>
+      <p class="description">Get AI's Comments and Suggestions on Your Code.</p>
       <input v-model="repoUrl" type="text" placeholder="输入 GitHub 仓库 URL" class="input" @keyup.enter="getScore" />
       <button @click="getScore" class="btn" :disabled="loading">获取评分</button>
       <div v-if="loading" class="loader"></div>
@@ -90,7 +90,7 @@ export default {
           const sizeInKB = repoData.size; // 获取仓库大小（单位：KB）
 
           // 判断是否超过 100MB
-          if (sizeInKB > 100 * 1024) { // 100MB = 100 * 1024 KB
+          if (sizeInKB > 1024 * 1024) { // 100MB = 100 * 1024 KB
             this.errorMessage = "仓库大小超过100M，暂不支持(仓库这么大是否合理？)";
             this.loading = false; // 结束加载
             return; // 不评分，直接返回
