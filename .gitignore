@@ -186,3 +186,5 @@ pnpm-debug.log*
 bak
 __pycache__
 *.pyc
+
+package-lock.json
