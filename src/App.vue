@@ -70,12 +70,12 @@ export default {
       }
     },
     async getScore() {
-      this.loading = true;
-
       if (!this.validateUrl(this.repoUrl)) {
         alert("请输入有效的 GitHub 仓库 URL:\n https://github.com/user/repo 或 https://github.com/user/repo.git");
         return; // 如果 URL 无效，结束方法
       }
+
+      this.loading = true;
 
       // 提取用户和仓库名称
       const regex = /https:\/\/github\.com\/([^/]+)\/([^/]+)(\.git)?/;
@@ -102,6 +102,7 @@ export default {
         }
       } else {
         alert("无效的仓库格式，请确认URL是否正确");
+        this.loading = false;
         return;
       }
 
