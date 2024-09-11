@@ -180,6 +180,24 @@ export default {
 </script>
 
 <style>
+body {
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background-color: #e2e8f0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #cbd5e0;
+}
+
 .app {
   height: 100vh;
   display: flex;
