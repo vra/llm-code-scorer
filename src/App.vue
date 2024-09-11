@@ -3,8 +3,10 @@
     <div class="header">
       <h1 class="title">LLM Code Scorer</h1>
       <p class="description">Get AI's Comments and Suggestions on Your Code.</p>
-      <input v-model="repoUrl" type="text" placeholder="输入 GitHub 仓库 URL" class="input" @keyup.enter="getScore" />
-      <button @click="getScore" class="btn" :disabled="loading">获取评分</button>
+      <div class="input-container">
+        <input v-model="repoUrl" type="text" placeholder="输入 GitHub 仓库 URL" class="input" @keyup.enter="getScore" />
+        <button @click="getScore" class="btn" :disabled="loading">获取评分</button>
+      </div>
       <div v-if="loading" class="loader"></div>
       <p v-if="loading" class="loading-text">LLM 打分中，请耐心等待...</p>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
@@ -163,21 +165,25 @@ export default {
   /* 设置为白色 */
 }
 
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .input {
   padding: 1rem;
   font-size: 1rem;
   border: none;
   border-radius: 20px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
   width: 100%;
   max-width: 400px;
   box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
-}
-
-.input:focus {
-  outline: none;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
 .btn {
@@ -185,9 +191,40 @@ export default {
   color: #fff;
   border: none;
   border-radius: 20px;
-  padding: 0.8rem 1.5rem;
+  padding: 1rem;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .input-container {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .input {
+    flex: 1;
+    margin-right: 0.5rem;
+    margin-bottom: 0rem;
+    height: 100%;
+  }
+
+  .btn {
+    flex-shrink: 0;
+    height: auto;
+    padding: 1.15rem 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
 .btn:disabled {
@@ -251,16 +288,22 @@ export default {
 }
 
 .details {
-  max-height: 200px;
-  overflow-y: auto;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .details {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
 }
 
 .detail-item {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 1rem;
-  margin-bottom: 1rem;
-  transition: background 0.3s;
+  transition: ease-in 0.3s;
 }
 
 .detail-item h4 {
