@@ -15,17 +15,18 @@
     <div v-if="score !== null && !loading" ref="resultArea" class="result">
       <div class="score-container">
         <h2 class="score">评分: <span>{{ score.toFixed(2) }}</span> / 10</h2>
-        <p class="comment">{{ comment }}</p>
+        <button @click="shareResults" class="save-btn" ref="saveButton">保存</button>
       </div>
-      <h3 class="details-title">评分细节(上下滑动查看)</h3>
+      <p class="comment">{{ comment }}</p>
+      <h3 class="details-title">评分细节</h3>
       <div class="details">
         <div v-for="(item, key) in detail" :key="key" class="detail-item">
           <h4>{{ key }}:{{ item.分数 }}</h4>
           <p>{{ item.理由 }}</p>
         </div>
       </div>
-      <h3 class="summary-title">总评与建议</h3>
-      <p class="suggestion">{{ description }}</p>
+    <h3 class="summary-title">总评与建议</h3>
+    <p class="suggestion">{{ description }}</p>
     </div>
 
     <footer class="footer">
@@ -40,6 +41,7 @@
 
 <script>
 import axios from 'axios';
+import { toPng } from 'html-to-image';
 export default {
   data() {
     return {
@@ -129,11 +131,55 @@ export default {
         this.loading = false;
       }
     },
+    shareResults() {
+      const originalResult = this.$refs.resultArea;
+      if (originalResult) {
+        // 容器元素
+        const container = document.createElement('div');
+        container.style.width = '720px';
+        container.style.background = 'linear-gradient(-45deg, #5a67d8, #b83280)';
+        container.style.padding = '20px'
+        container.style.color = '#fff';
+        // 创建显示仓库 URL 的元素并添加到容器顶部
+        const repoUrlDiv = document.createElement('div');
+        repoUrlDiv.textContent = `代码仓库: ${this.repoUrl}`;
+        repoUrlDiv.style.marginBottom = '20px';
+        repoUrlDiv.style.wordWrap = 'break-word';
+        repoUrlDiv.style.fontSize = '16px';
+        repoUrlDiv.style.fontWeight = 'bold';
+        container.appendChild(repoUrlDiv);
+        // 克隆 result 元素并更改样式
+        const saveBtn = this.$refs.saveButton;
+        saveBtn.style.visibility="hidden";
+        const resultClone = originalResult.cloneNode(true);
+        resultClone.style.maxHeight = 'none';
+        resultClone.style.overflow = 'visible';
+        resultClone.style.width = '100%';
+        container.appendChild(resultClone);
+        saveBtn.style.visibility="visible";
+
+        document.body.appendChild(container);
+
+        const now = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+        const fileName = `LLM_Code_Scorer_${now}.png`;
+        toPng(container)
+          .then((dataUrl) => {
+            document.body.removeChild(container);
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = dataUrl;
+            link.click();
+          })
+          .catch((error) => {
+            console.error('Error generating image:', error);
+          });
+      }
+    }
   }
 }
 </script>
 
-<style scoped>
+<style>
 .app {
   height: 100vh;
   display: flex;
@@ -257,10 +303,9 @@ export default {
   /* 占满宽度 */
 }
 
-
 .score-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
 }
@@ -271,6 +316,22 @@ export default {
   margin-bottom: 0.5rem;
   color: #fff;
   /* 设置为白色 */
+}
+
+.save-btn {
+  background-color: #efeaf1;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: 1rem;
+}
+
+.save-btn:hover {
+  background-color: #929094;
 }
 
 .comment {
