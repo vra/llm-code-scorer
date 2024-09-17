@@ -1,7 +1,7 @@
 # llm-code-scorer
 用 LLM 给 GitHub 代码仓库进行打分
 
-体验地址: <https://llm-code-scorer.simpleai.site>
+体验地址: <http://lcs.simpleai.site>
 
 ## 项目概述
 1. LLM：采用免费的智谱`glm-4-flash`模型
