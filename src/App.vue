@@ -53,6 +53,7 @@ export default {
       imageUrl: '',
       loading: false,
       errorMessage: '',  // 新增错误信息状态
+
     };
   },
   methods: {
@@ -116,8 +117,9 @@ export default {
       this.description = '';
       this.imageUrl = '';
       this.errorMessage = '';
+      const apiUrl = '/api';
       try {
-        const response = await axios.post('http://47.99.139.135:5000/get-score', {
+        const response = await axios.post(`${apiUrl}/get-score`, {
           url: this.repoUrl
         });
 
