@@ -2,14 +2,45 @@
   <div id="app" class="app">
     <div class="header">
       <h1 class="title">LLM Code Scorer</h1>
-      <p class="description">Get AI's Comments and Suggestions on Your Code.</p>
-      <div class="input-container">
-        <input v-model="repoUrl" type="text" placeholder="输入 GitHub 仓库 URL" class="input" @keyup.enter="getScore" />
-        <button @click="getScore" class="btn" :disabled="loading">获取评分</button>
+      <p class="description">获取AI对您代码的评论和建议。</p>
+      
+      <!-- 新增: 标签切换 -->
+      <div class="tab-container">
+        <button @click="activeTab = 'scorer'" :class="{ active: activeTab === 'scorer' }" class="tab-btn">打分</button>
+        <button @click="activeTab = 'leaderboard'" :class="{ active: activeTab === 'leaderboard' }" class="tab-btn">排行榜</button>
       </div>
-      <div v-if="loading" class="loader"></div>
-      <p v-if="loading" class="loading-text">LLM 打分中，请耐心等待...</p>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+      <!-- 打分界面 -->
+      <div v-if="activeTab === 'scorer'">
+        <div class="input-container">
+          <input v-model="repoUrl" type="text" placeholder="输入 GitHub 仓库 URL" class="input" @keyup.enter="getScore" />
+          <button @click="getScore" class="btn" :disabled="loading">获取评分</button>
+        </div>
+        <div v-if="loading" class="loader"></div>
+        <p v-if="loading" class="loading-text">LLM 打分中，请耐心等待...</p>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </div>
+
+      <!-- 新增: 排行榜界面 -->
+      <div v-if="activeTab === 'leaderboard'" class="leaderboard">
+        <h2>得分排行榜</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>仓库</th>
+              <th>平均得分</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(repo, index) in sortedLeaderboard" :key="repo.url">
+              <td>{{ index + 1 }}</td>
+              <td>{{ repo.url }}</td>
+              <td>{{ repo.averageScore.toFixed(2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div v-if="score !== null && !loading" ref="resultArea" class="result">
@@ -53,8 +84,14 @@ export default {
       imageUrl: '',
       loading: false,
       errorMessage: '',  // 新增错误信息状态
-
+      activeTab: 'scorer',
+      leaderboard: [],
     };
+  },
+  computed: {
+    sortedLeaderboard() {
+      return [...this.leaderboard].sort((a, b) => b.averageScore - a.averageScore);
+    }
   },
   methods: {
     validateUrl(url) {
@@ -89,7 +126,7 @@ export default {
         const user = match[1];
         const repo = match[2].replace(/\.git$/, '');
 
-        // 获取仓库数据，检查是否存在及大小
+        // 获取仓库数据，检查是否存���及大小
         try {
           const repoData = await this.getRepoData(user, repo);
           const sizeInKB = repoData.size; // 获取仓库大小（单位：KB）
@@ -177,7 +214,18 @@ export default {
             console.error('Error generating image:', error);
           });
       }
+    },
+    async fetchLeaderboard() {
+      try {
+        const response = await axios.get('/api/leaderboard');
+        this.leaderboard = response.data;
+      } catch (error) {
+        console.error('获取排行榜数据失败:', error);
+      }
     }
+  },
+  mounted() {
+    this.fetchLeaderboard();
   }
 }
 </script>
@@ -483,8 +531,58 @@ body {
 
 .error-message {
   color: #fff;
-  /* 设置为红色以突出显示 */
+  /* 设置���红色以突出显示 */
   margin-top: 10px;
   /* 上边距 */
+}
+
+.tab-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: background 0.3s ease;
+}
+
+.tab-btn.active {
+  background: #ff4081;
+}
+
+.leaderboard {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.leaderboard table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.leaderboard th, .leaderboard td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.leaderboard th {
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: bold;
+}
+
+.leaderboard tr:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 </style>

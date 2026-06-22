@@ -4,6 +4,7 @@ import random
 import re
 import subprocess
 import tempfile
+import requests
 
 from loguru import logger
 
@@ -164,11 +165,11 @@ PROMPT = """
     "评分": {
         "代码质量": {
             "分数": 3,
-            "理由": "代码格式混乱不统一，比如等号前后空格不一致，使用main.cpp中的第10行使用了未定义行为,代码没有注释说明，代码逻辑混乱不易理清"
+            "理由": "代码格式混乱不统一，比如等号前后空格不一致，使用main.cpp中的���10行使用了未定义行为,代码没有注释说明，代码逻辑混乱不易理清"
         },
         "文档规范": {
             "分数": 10,
-            "理由": "有详细的README文档，包含了代码功能说明，如何安装使用，以及常见问题解决方法等"
+            "理由": "有详细的README文档，包含了代码能说明，如何安装使用，以及常见问题解决方法等"
         },
         "配置规范": {
             "分数": 8,
@@ -318,6 +319,7 @@ def generate_repo_summary(repo_path):
 class AICodeScorer:
     def __init__(self, api_key, llm_api_type="zhipu"):
         self.llm_api_type = llm_api_type
+        self.data_root = "data"
 
         self.client = eval(f"self.init_llm_client_{self.llm_api_type}")(api_key)
 
@@ -332,9 +334,31 @@ class AICodeScorer:
 
         return match is not None
 
+    def get_latest_commit(self, owner, repo):
+    
+        # 构建API请求URL
+        api_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+    
+        # 发送请求获取最新commit
+        # headers = {"Authorization": f"token {os.getenv('GITHUB_TOKEN')}"}
+        response = requests.get(api_url)
+        response.raise_for_status()
+    
+        # 获取最新commit的SHA
+        latest_commit = response.json()[0]['sha']
+        return latest_commit
+
+
     def run(self, repo_url):
-        # check repo_url is valid GitHub url
-        assert self.is_valid_github_repo(repo_url)
+        _, _, _, owner, repo = repo_url.split('/')
+        latest_commit = self.get_latest_commit(owner, repo)
+         # 构建文件名
+        filename = f"{self.data_root}/{owner}_{repo}_{latest_commit[:7]}.json"
+    
+        # 检查是否存在缓存结果
+        if os.path.exists(filename):
+            with open(filename, 'r') as f:
+                return json.load(f)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             # Clone to temp folder
@@ -369,6 +393,9 @@ class AICodeScorer:
             results_dict = json.loads(results_str.strip("```").strip("json"))
             logger.info("Results dict:")
             logger.info(results_dict)
+
+            with open(filename, 'w') as f:
+                json.dump(results_dict, f, indent=2)
 
             return results_dict
 
